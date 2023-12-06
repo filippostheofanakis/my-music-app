@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/my-music-app/static/css/main.2e490b24.css",
+    "main.js": "/my-music-app/static/js/main.b454577b.js",
+    "static/js/787.7ca8bc9d.chunk.js": "/my-music-app/static/js/787.7ca8bc9d.chunk.js",
+    "index.html": "/my-music-app/index.html",
+    "main.2e490b24.css.map": "/my-music-app/static/css/main.2e490b24.css.map",
+    "main.b454577b.js.map": "/my-music-app/static/js/main.b454577b.js.map",
+    "787.7ca8bc9d.chunk.js.map": "/my-music-app/static/js/787.7ca8bc9d.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.2e490b24.css",
+    "static/js/main.b454577b.js"
+  ]
+}
