@@ -1,5 +1,5 @@
 // Import the uuid function to generate unique IDs
-import { v4 as uuidv4 } from "uuid";
+const { v4: uuidv4 } = require("uuid");
 
 // A function that returns an array of song objects
 const chillHop = () => {
@@ -39,4 +39,4 @@ const chillHop = () => {
 };
 
 // Export the function so it can be used in other parts of your app
-export default chillHop;
+module.exports = chillHop;
