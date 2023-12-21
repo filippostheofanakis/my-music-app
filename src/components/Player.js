@@ -1,5 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
-import chillHop from "../data"; // Adjust this import based on your data file's location
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import "./Player.css";
 
 const Player = ({
@@ -38,10 +37,10 @@ const Player = ({
   };
 
   const setSeekBar = (e) => {
-    const width = e.target.clientWidth; // Get the width of the progress bar
-    const clickX = e.nativeEvent.offsetX; // Get the horizontal point of the click within the bar
-    const duration = audioRef.current.duration; // Total duration of the song
-    audioRef.current.currentTime = (clickX / width) * duration; // Set the current time
+    const width = e.target.clientWidth;
+    const clickX = e.nativeEvent.offsetX;
+    const duration = audioRef.current.duration;
+    audioRef.current.currentTime = (clickX / width) * duration;
   };
 
   const playNextSong = () => {
@@ -56,16 +55,14 @@ const Player = ({
     resetPlayback();
   };
 
-  const resetPlayback = () => {
-    // Reset the current time and progress bar
+  const resetPlayback = useCallback(() => {
     setCurrentTime(0);
     setSongProgress(0);
     setRemainingTime(duration);
-    // If using a progress bar element, you may need to reset its value directly as well
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
     }
-  };
+  }, [duration]);
 
   useEffect(() => {
     if (isPlaying && audioRef.current) {
@@ -76,15 +73,15 @@ const Player = ({
   }, [isPlaying]);
 
   useEffect(() => {
-    if (audioRef.current) {
+    if (currentSong && audioRef.current) {
       audioRef.current.src = currentSong.audio;
       audioRef.current.load();
-      resetPlayback(); // Reset the playback whenever the song changes
+      resetPlayback();
       if (isPlaying) {
-        setTimeout(() => audioRef.current.play(), 100); // A slight delay to ensure the new song loads
+        setTimeout(() => audioRef.current.play(), 100);
       }
     }
-  }, [currentSong]);
+  }, [currentSong, isPlaying, resetPlayback]);
 
   function formatTime(seconds) {
     if (isNaN(seconds)) {
@@ -97,48 +94,59 @@ const Player = ({
 
   return (
     <div className="player">
-      <div className="current-song">
-        <img
-          src={currentSong.cover}
-          alt={currentSong.name}
-          className="current-song-cover"
-        />
-        <h2 className="current-song-name">{currentSong.name}</h2>
-        <h3 className="current-song-artist">{currentSong.artist}</h3>
-      </div>
-      <div className="player-controls">
-        <button onClick={playPrevSong} className="control-button">
-          <i className="fas fa-step-backward"></i>
-        </button>
-        <button onClick={togglePlayPause} className="control-button">
-          {isPlaying ? (
-            <i className="fas fa-pause"></i>
-          ) : (
-            <i className="fas fa-play"></i>
-          )}
-        </button>
-        <button onClick={playNextSong} className="control-button">
-          <i className="fas fa-step-forward"></i>
-        </button>
-      </div>
-      <div className="progress-container" onClick={setSeekBar}>
-        <div className="progress-bar">
-          <div className="progress" style={{ width: `${songProgress}%` }}></div>
-        </div>
-        <div className="progress-time">
-          <span>{!isNaN(currentTime) ? formatTime(currentTime) : "0:00"}</span>
-          <span>
-            {!isNaN(remainingTime) ? `-${formatTime(remainingTime)}` : "0:00"}
-          </span>
-        </div>
-      </div>
-      <audio
-        ref={audioRef}
-        src={currentSong.audio}
-        onLoadedMetadata={onLoadedMetadata}
-        onTimeUpdate={onTimeUpdate}
-        onEnded={playNextSong}
-      ></audio>
+      {currentSong && (
+        <>
+          <div className="current-song">
+            <img
+              src={currentSong.cover_url}
+              alt={currentSong.name}
+              className="current-song-cover"
+            />
+            <h2 className="current-song-name">{currentSong.name}</h2>
+            <h3 className="current-song-artist">{currentSong.artist}</h3>
+          </div>
+          <div className="player-controls">
+            <button onClick={playPrevSong} className="control-button">
+              <i className="fas fa-step-backward"></i>
+            </button>
+            <button onClick={togglePlayPause} className="control-button">
+              {isPlaying ? (
+                <i className="fas fa-pause"></i>
+              ) : (
+                <i className="fas fa-play"></i>
+              )}
+            </button>
+            <button onClick={playNextSong} className="control-button">
+              <i className="fas fa-step-forward"></i>
+            </button>
+          </div>
+          <div className="progress-container" onClick={setSeekBar}>
+            <div className="progress-bar">
+              <div
+                className="progress"
+                style={{ width: `${songProgress}%` }}
+              ></div>
+            </div>
+            <div className="progress-time">
+              <span>
+                {!isNaN(currentTime) ? formatTime(currentTime) : "0:00"}
+              </span>
+              <span>
+                {!isNaN(remainingTime)
+                  ? `-${formatTime(remainingTime)}`
+                  : "0:00"}
+              </span>
+            </div>
+          </div>
+          <audio
+            ref={audioRef}
+            src={currentSong.audio}
+            onLoadedMetadata={onLoadedMetadata}
+            onTimeUpdate={onTimeUpdate}
+            onEnded={playNextSong}
+          ></audio>
+        </>
+      )}
     </div>
   );
 };
