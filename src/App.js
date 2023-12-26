@@ -4,6 +4,7 @@ import axios from "axios";
 import { auth } from "./firebase";
 // import firebase from "./firebase";
 import Register from "./components/Register";
+import Profile from "./components/Profile";
 import Login from "./components/Login";
 import Player from "./components/Player";
 import SongList from "./components/SongList";
@@ -78,6 +79,7 @@ function App() {
     if (auth.currentUser) {
       //Logout from firebase
       auth.signOut();
+      setUser(null);
     } else if (token) {
       // Logout custom token-based authentication
       localStorage.removeItem("token");
@@ -108,6 +110,7 @@ function App() {
             Welcome, {user ? user.displayName || user.email : "Custom User"}
           </div>
           <button onClick={handleLogout}>Sign Out</button>
+          <Profile />
         </div>
       ) : (
         <>
