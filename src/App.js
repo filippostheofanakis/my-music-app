@@ -4,6 +4,7 @@ import axios from "axios";
 import { auth } from "./firebase";
 // import firebase from "./firebase";
 import Register from "./components/Register";
+import UrlConverter from "./components/UrlConverter";
 import Profile from "./components/Profile";
 import Login from "./components/Login";
 import Player from "./components/Player";
@@ -104,6 +105,7 @@ function App() {
         setSongProgress={setSongProgress}
         songs={songs}
       />
+      <UrlConverter />
       {user || token ? (
         <div>
           <div>
