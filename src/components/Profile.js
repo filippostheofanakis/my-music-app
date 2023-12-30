@@ -11,7 +11,7 @@ const Profile = () => {
 
   // Function to retrieve the current user ID from local storage
   const getCurrentUserId = () => {
-    const userId = localStorage.getItem("userId");
+    const userId = String(localStorage.getItem("userId"));
     console.log("User ID from localStorage:", userId);
     if (!userId) {
       setErrorMessage("No user ID found.");

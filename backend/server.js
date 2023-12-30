@@ -4,10 +4,14 @@ const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const pool = require("./db"); // Adjust this path to your database connection file
 require("dotenv").config();
+const ytdl = require("ytdl-core");
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use("/files", express.static(path.join(__dirname, "files")));
 
 const PORT = process.env.PORT || 5000;
 
@@ -18,7 +22,11 @@ const authenticateToken = (req, res, next) => {
   if (token == null) return res.sendStatus(401);
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
+    if (err) {
+      console.log("Token verification failed:", err);
+      return res.sendStatus(403); // Invalid token
+    }
+    console.log("Token and user info:", token, user); // Log the token and user info
     req.user = user;
     next();
   });
@@ -177,7 +185,7 @@ app.put("/change-password", authenticateToken, async (req, res) => {
 app.get("/user/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    if (req.user.user_id !== id) {
+    if (String(req.user.user_id) !== String(id)) {
       return res.status(403).json({ error: "Access denied" });
     }
 
@@ -193,6 +201,61 @@ app.get("/user/:id", authenticateToken, async (req, res) => {
   } catch (err) {
     console.error(err.message);
     res.status(500).send("Server error");
+  }
+});
+
+// New endpoint to handle song URL submissions for conversion
+app.post("/submit-url", async (req, res) => {
+  const { songUrl } = req.body; // assume the body has a field named songUrl
+
+  // Validate the URL (assuming it is a YouTube URL)
+  if (!ytdl.validateURL(songUrl)) {
+    return res.status(400).json({ error: "Invalid URL provided" });
+  }
+
+  try {
+    // Get video info and derive a filename
+    const info = await ytdl.getInfo(songUrl);
+    let title = info.videoDetails.title.replace(/[^a-zA-Z0-9 ]/g, "");
+    title = title.replace(/\s+/g, " ").trim(); // Remove extra spaces and trim
+    const filename = `${title}.mp3`;
+    const outputPath = path.join(__dirname, "files", filename); // Absolute path used for saving the file
+
+    // Download and convert the video to MP3
+    const stream = ytdl(songUrl, { format: "mp3" }).pipe(
+      fs.createWriteStream(outputPath)
+    );
+
+    stream.on("finish", () => {
+      // Send back a web-accessible path to the MP3 file
+      res.json({
+        message: "File converted successfully",
+        path: `/files/${encodeURIComponent(filename)}`, // Correctly encode the filename to handle special characters
+      });
+    });
+  } catch (error) {
+    console.error("Error converting file:", error);
+    res.status(500).json({ error: "Error converting file" });
+  }
+});
+
+app.get("/stream-audio", async (req, res) => {
+  const { url } = req.query; // get the video url from the query string
+
+  try {
+    if (!ytdl.validateURL(url)) {
+      return res.status(400).json({ error: "Invalid URL" });
+    }
+
+    // set response headers to stream the audio
+    res.setHeader("Content-Type", "audio/mpeg");
+    res.setHeader("Content-Disposition", 'inline; filename="audio.mp3"');
+
+    //stream the audio from the youtube directly to the response
+    ytdl(url, { quality: "highestaudio", filter: "audioonly" }).pipe(res);
+  } catch (error) {
+    console.error(" Error streaming the audio:", error);
+    res.status(500).json({ error: "Error streaming the audio" });
   }
 });
 
