@@ -37,6 +37,9 @@ function App() {
   }, []);
 
   useEffect(() => {
+    // Base URL of your backend server
+    const baseURL = "http://localhost:5000";
+
     // Fetch songs when the component mounts
     fetch("http://localhost:5000/songs") // Make a GET request to the backend
       .then((response) => {
@@ -45,8 +48,19 @@ function App() {
         }
         return response.json(); // Parse the response body as JSON
       })
-      .then((data) => setSongs(data)) // Update the 'songs' state with the fetched data
-      .catch((error) => console.error("Error fetching songs:", error)); // Log any errors
+      .then((data) => {
+        // Adjust URLs for local songs
+        const adjustedSongs = data.map((song) => {
+          return {
+            ...song,
+            audio: song.audio.startsWith("/files/")
+              ? `${baseURL}${song.audio}`
+              : song.audio,
+          };
+        });
+        setSongs(adjustedSongs); // Update the 'songs' state with the adjusted data
+      })
+      .catch((error) => console.error("Error fetching songs:", error));
   }, []); // Empty dependency array ensures this effect runs only once on mount
 
   const resetPlayback = () => {

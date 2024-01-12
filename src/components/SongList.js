@@ -1,30 +1,33 @@
 // SongList.js
 import React, { useState, useEffect } from "react";
 
-import "./SongList.css";
+// import "./SongList.css";
 // import chillHop from "../data";
 
 const SongList = ({ songs, currentSongIndex, handleSongSelect }) => {
   return (
-    <div className="song-list">
-      <h2 className="library-title">Library</h2>
-
+    <aside className="w-64 h-screen bg-black overflow-y-auto text-gray-400 p-5">
+      <h2 className="text-xl font-semibold text-white mb-6">Library</h2>
       {songs.map((song, index) => (
         <div
-          className={`song-list-item ${
-            index === currentSongIndex ? "active" : ""
-          }`}
           key={song.id}
+          className={`flex items-center mb-4 p-2 rounded-lg cursor-pointer ${
+            index === currentSongIndex ? "bg-gray-900" : "hover:bg-gray-800"
+          }`}
           onClick={() => handleSongSelect(index)}
         >
-          <img src={song.cover_url} alt={song.title} className="song-cover" />
-          <div className="song-description">
-            <h3 className="song-title">{song.name}</h3>
-            <p className="song-artist">{song.artist}</p>
+          <img
+            className="w-14 h-14 object-cover rounded-md mr-4"
+            src={song.cover_url}
+            alt={song.title}
+          />
+          <div>
+            <h3 className="text-white font-semibold">{song.title}</h3>
+            <p className="text-gray-500 text-sm">{song.artist}</p>
           </div>
         </div>
       ))}
-    </div>
+    </aside>
   );
 };
 

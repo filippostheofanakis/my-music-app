@@ -1,3 +1,4 @@
+// server.js
 const express = require("express");
 const bcrypt = require("bcrypt");
 const cors = require("cors");
@@ -7,9 +8,16 @@ require("dotenv").config();
 const ytdl = require("ytdl-core");
 const fs = require("fs");
 const path = require("path");
+const ffmpeg = require("fluent-ffmpeg");
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:3000", // or your front-end's origin
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use("/files", express.static(path.join(__dirname, "files")));
 
@@ -204,38 +212,62 @@ app.get("/user/:id", authenticateToken, async (req, res) => {
   }
 });
 
-// New endpoint to handle song URL submissions for conversion
-app.post("/submit-url", async (req, res) => {
-  const { songUrl } = req.body; // assume the body has a field named songUrl
+app.post("/submit-url", authenticateToken, async (req, res) => {
+  const { songUrl } = req.body;
 
-  // Validate the URL (assuming it is a YouTube URL)
   if (!ytdl.validateURL(songUrl)) {
     return res.status(400).json({ error: "Invalid URL provided" });
   }
 
   try {
-    // Get video info and derive a filename
     const info = await ytdl.getInfo(songUrl);
     let title = info.videoDetails.title.replace(/[^a-zA-Z0-9 ]/g, "");
-    title = title.replace(/\s+/g, " ").trim(); // Remove extra spaces and trim
-    const filename = `${title}.mp3`;
-    const outputPath = path.join(__dirname, "files", filename); // Absolute path used for saving the file
+    title = title.replace(/\s+/g, " ").trim();
+    const filename = title.split(" ").join("_") + ".mp3";
+    const outputPath = path.join(__dirname, "files", filename);
 
-    // Download and convert the video to MP3
-    const stream = ytdl(songUrl, { format: "mp3" }).pipe(
-      fs.createWriteStream(outputPath)
-    );
+    ytdl(songUrl, { format: "mp3" })
+      .pipe(fs.createWriteStream(outputPath))
+      .on("error", (error) => {
+        console.error("YTDL or file stream error:", error);
+        res.status(500).json({ error: "Error in file conversion" });
+      })
+      .on("finish", async () => {
+        console.log("Conversion successful, file saved at:", outputPath);
 
-    stream.on("finish", () => {
-      // Send back a web-accessible path to the MP3 file
-      res.json({
-        message: "File converted successfully",
-        path: `/files/${encodeURIComponent(filename)}`, // Correctly encode the filename to handle special characters
+        // Insert song details into the 'songs' table
+        const audioPath = `/files/${encodeURIComponent(filename)}`;
+
+        // Send a response back to the client with the path of the saved audio file
+        res.json({ path: audioPath });
       });
-    });
   } catch (error) {
     console.error("Error converting file:", error);
     res.status(500).json({ error: "Error converting file" });
+  }
+});
+
+app.get("/user-songs", authenticateToken, async (req, res) => {
+  try {
+    const userSongs = await pool.query(
+      "SELECT s.id, s.title, s.artist, s.cover_url, s.audio, s.active, s.color FROM songs s JOIN user_songs us ON s.id = us.song_id WHERE us.user_id = $1",
+      [req.user.user_id]
+    );
+
+    const baseUrl = "http://localhost:5000";
+
+    const modifiedUserSongs = userSongs.rows.map((song) => {
+      return {
+        ...song,
+        audio: `${baseUrl}${song.audio}`,
+      };
+    });
+
+    res.json(modifiedUserSongs);
+    console.log("Fetched user songs:", modifiedUserSongs);
+  } catch (error) {
+    console.error("Error fetching user songs:", error);
+    res.status(500).send("Server error");
   }
 });
 
@@ -256,6 +288,55 @@ app.get("/stream-audio", async (req, res) => {
   } catch (error) {
     console.error(" Error streaming the audio:", error);
     res.status(500).json({ error: "Error streaming the audio" });
+  }
+});
+
+app.post("/save-song", authenticateToken, async (req, res) => {
+  const { title, audioPath } = req.body;
+  try {
+    const newSong = await pool.query(
+      "INSERT INTO songs (title, audio) VALUES ($1, $2) RETURNING *",
+      [title, audioPath]
+    );
+    res.json(newSong.rows[0]);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server error");
+  }
+});
+
+app.post("/save-song-details", authenticateToken, async (req, res) => {
+  const { title, artist, coverUrl, filename, path } = req.body;
+  const userId = req.user.user_id;
+
+  if (!title || !path) {
+    return res.status(400).json({ error: "Title and path are required" });
+  }
+
+  try {
+    const effectiveArtist = artist || "Unknown Artist";
+    const effectiveCoverUrl = coverUrl || "default_cover.jpg";
+    const effectivePath = `/${path}`; // Prepend '/files/' to the path
+
+    console.log("Inserting song details into the songs table");
+    const songResult = await pool.query(
+      "INSERT INTO songs (title, artist, cover_url, audio, filename) VALUES ($1, $2, $3, $4, $5) RETURNING id",
+      [title, effectiveArtist, effectiveCoverUrl, effectivePath, filename]
+    );
+    const songId = songResult.rows[0].id;
+
+    console.log(
+      `Inserted song with ID: ${songId}, now inserting into user_songs`
+    );
+    const userSongResult = await pool.query(
+      "INSERT INTO user_songs (user_id, song_id) VALUES ($1, $2) RETURNING *",
+      [userId, songId]
+    );
+
+    res.json({ song: songResult.rows[0], userSong: userSongResult.rows[0] });
+  } catch (error) {
+    console.error("Error saving song details:", error);
+    res.status(500).json({ error: "Error saving song details" });
   }
 });
 
