@@ -1,43 +1,11 @@
 /* App.css */
-
 body,
 html {
-  /* background-image: url("path-to-your-background-image.jpg");
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-attachment: fixed; */
-  margin: 0;
-  padding: 0;
-  font-family: "Arial", sans-serif;
-  background: linear-gradient(
-    to bottom right,
-    #e3eaf5,
-    #f3f4f6
-  ); /* Example gradient */
-  /* You can also use a background image if you prefer */
+  font-family: "Inter", sans-serif; /* Tailwind uses Inter by default */
+  /* background-color: #f3f4f6; Light gray background */
 }
 
 #root,
 .App {
-  height: 100%;
+  min-height: 100vh; /* Full viewport height */
 }
-
-.App {
-  display: flex;
-  justify-content: start; /* Aligns children (library and player) to the start of the flex container */
-  align-items: flex-start; /* Aligns children to the top of the container */
-}
-
-.song-list {
-  /* Assuming your SongList.css already styles this component */
-}
-
-.player {
-  margin-left: 20px; /* Or the spacing you desire */
-  width: calc(
-    100% - 270px
-  ); /* Assuming the song list is 250px and adding 20px margin */
-  max-width: 800px;
-}
-
-/* Add more styles here if needed */

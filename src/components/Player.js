@@ -66,20 +66,27 @@ const Player = ({
 
   useEffect(() => {
     if (isPlaying && audioRef.current) {
+      console.log("Playing audio");
       audioRef.current.play();
     } else if (audioRef.current) {
+      console.log("Pausing audio");
       audioRef.current.pause();
     }
   }, [isPlaying]);
 
   useEffect(() => {
+    console.log("Current song audio source:", currentSong?.audio);
+
     if (currentSong && audioRef.current) {
-      audioRef.current.src = currentSong.audio;
+      audioRef.current.src = new URL(currentSong.audio, window.location.origin);
       audioRef.current.load();
       resetPlayback();
       if (isPlaying) {
         setTimeout(() => audioRef.current.play(), 100);
       }
+      audioRef.current.onerror = function () {
+        console.error("Error with audio element", audioRef.current.error);
+      };
     }
   }, [currentSong, isPlaying, resetPlayback]);
 
@@ -144,6 +151,9 @@ const Player = ({
             onLoadedMetadata={onLoadedMetadata}
             onTimeUpdate={onTimeUpdate}
             onEnded={playNextSong}
+            onError={(e) =>
+              console.error("Error loading audio:", e.nativeEvent)
+            }
           ></audio>
         </>
       )}

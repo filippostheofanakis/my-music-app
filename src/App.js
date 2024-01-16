@@ -4,6 +4,8 @@ import axios from "axios";
 import { auth } from "./firebase";
 // import firebase from "./firebase";
 import Register from "./components/Register";
+import UrlConverter from "./components/UrlConverter";
+import Profile from "./components/Profile";
 import Login from "./components/Login";
 import Player from "./components/Player";
 import SongList from "./components/SongList";
@@ -16,6 +18,7 @@ function App() {
   const [songProgress, setSongProgress] = useState(0);
   const [songs, setSongs] = useState([]);
   const [user, setUser] = useState(null);
+
   const [token, setToken] = useState(localStorage.getItem("token"));
 
   useEffect(() => {
@@ -35,6 +38,9 @@ function App() {
   }, []);
 
   useEffect(() => {
+    // Base URL of your backend server
+    const baseURL = "http://localhost:5000";
+
     // Fetch songs when the component mounts
     fetch("http://localhost:5000/songs") // Make a GET request to the backend
       .then((response) => {
@@ -43,8 +49,19 @@ function App() {
         }
         return response.json(); // Parse the response body as JSON
       })
-      .then((data) => setSongs(data)) // Update the 'songs' state with the fetched data
-      .catch((error) => console.error("Error fetching songs:", error)); // Log any errors
+      .then((data) => {
+        // Adjust URLs for local songs
+        const adjustedSongs = data.map((song) => {
+          return {
+            ...song,
+            audio: song.audio.startsWith("/files/")
+              ? `${baseURL}${song.audio}`
+              : song.audio,
+          };
+        });
+        setSongs(adjustedSongs); // Update the 'songs' state with the adjusted data
+      })
+      .catch((error) => console.error("Error fetching songs:", error));
   }, []); // Empty dependency array ensures this effect runs only once on mount
 
   const resetPlayback = () => {
@@ -78,6 +95,7 @@ function App() {
     if (auth.currentUser) {
       //Logout from firebase
       auth.signOut();
+      setUser(null);
     } else if (token) {
       // Logout custom token-based authentication
       localStorage.removeItem("token");
@@ -102,19 +120,28 @@ function App() {
         setSongProgress={setSongProgress}
         songs={songs}
       />
-      {user || token ? (
-        <div>
-          <div>
-            Welcome, {user ? user.displayName || user.email : "Custom User"}
+      <UrlConverter />
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
+        {user || token ? (
+          <div className="w-full max-w-xs">
+            <div className="mb-4 text-lg font-semibold text-center">
+              Welcome, {user ? user.displayName || user.email : "Custom User"}
+            </div>
+            <button
+              onClick={handleLogout}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            >
+              Sign Out
+            </button>
+            <Profile />
           </div>
-          <button onClick={handleLogout}>Sign Out</button>
-        </div>
-      ) : (
-        <>
-          <Login onCustomLogin={handleCustomLogin} />
-          <Register />
-        </>
-      )}
+        ) : (
+          <div className="w-full max-w-xs">
+            <Login onCustomLogin={handleCustomLogin} />
+            <Register />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

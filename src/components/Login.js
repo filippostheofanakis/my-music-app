@@ -1,15 +1,15 @@
-// src/components/Login.js
 import React, { useState } from "react";
 import axios from "axios";
 import { auth } from "../firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
-const Login = () => {
+const Login = ({ onCustomLogin }) => {
   const [credentials, setCredentials] = useState({
     username: "",
     password: "",
   });
   const [error, setError] = useState("");
+  const { username, password } = credentials;
 
   // Update the state when input fields change
   const handleInputChange = (e) => {
@@ -21,15 +21,19 @@ const Login = () => {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:5000/login", // Replace with your backend login endpoint
+        "http://localhost:5000/login",
         credentials
       );
-      localStorage.setItem("token", response.data.token);
-      // Update UI or Redirect user here
-      console.log("Login successful"); // Handle the response, such as storing the token
+      const { token, user_id } = response.data;
+
+      onCustomLogin(username, password);
+      localStorage.setItem("token", token);
+      localStorage.setItem("userId", response.data.user_id); // Store user ID as a string
+
+      console.log("Login successful");
     } catch (err) {
       setError(err.response.data.error);
-      console.error("Login Failed:", err.response.data); // Handle errors
+      console.error("Login Failed:", err.response.data);
     }
   };
 
@@ -38,11 +42,9 @@ const Login = () => {
     const provider = new GoogleAuthProvider();
     signInWithPopup(auth, provider)
       .then((result) => {
-        // Handle the successful authentication here.
-        // You can access the user's info with result.user
+        // Successful authentication handling
       })
       .catch((error) => {
-        // Handle errors here.
         console.error("Error during sign in:", error);
       });
   };
@@ -70,6 +72,7 @@ const Login = () => {
         <button type="submit">Login</button>
       </form>
       <button onClick={signInWithGoogle}>Sign in with Google</button>
+      {error && <p className="error">{error}</p>} {/* Display login errors */}
     </div>
   );
 };
