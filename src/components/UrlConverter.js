@@ -74,22 +74,33 @@ const UrlConverter = () => {
   };
 
   return (
-    <div>
-      <h2>Convert YouTube URL to MP3</h2>
-      <form onSubmit={handleSubmit}>
+    <div className=" flex flex-col items-center justify-center p-4">
+      <h1 className="text-2xl font-bold mb-4">Convert YouTube URL to MP3</h1>
+      <form onSubmit={handleSubmit} className="w-full max-w-lg">
         <input
           type="text"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="Enter YouTube URL here"
           required
+          className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
         />
-        <button type="submit">Convert to MP3</button>
-        <button onClick={saveSongDetails}>Save to Database</button>
+        <button
+          type="submit"
+          className="flex-1 text-white bg-blue-500 hover:bg-blue-600 font-medium py-2 px-4 rounded-md transition duration-200"
+        >
+          Convert to MP3
+        </button>
+        <button
+          onClick={saveSongDetails}
+          className="flex-1 text-white bg-blue-500 hover:bg-blue-600 font-medium py-2 px-4 rounded-md transition duration-200"
+        >
+          Save to Database
+        </button>
       </form>
       {message && <p>{message}</p>}
       {audioPath && (
-        <div>
+        <div className="mt-4">
           <audio
             controls
             onError={(e) => console.error("Error playing audio:", e)}

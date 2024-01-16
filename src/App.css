@@ -2,7 +2,7 @@
 body,
 html {
   font-family: "Inter", sans-serif; /* Tailwind uses Inter by default */
-  background-color: #f3f4f6; /* Light gray background */
+  /* background-color: #f3f4f6; Light gray background */
 }
 
 #root,

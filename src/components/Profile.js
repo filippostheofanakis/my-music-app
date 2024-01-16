@@ -141,85 +141,69 @@ const Profile = () => {
   };
 
   return (
-    <div className="bg-black min-h-screen flex items-center justify-center p-5">
-      <div className="bg-gray-900 text-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-semibold mb-6">Profile</h1>
-        {isEditMode ? (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              className="w-full p-2 bg-gray-800 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              type="text"
-              name="username"
-              value={profileData.username}
-              onChange={handleInputChange}
-              placeholder="Username"
-            />
-            <input
-              className="w-full p-2 bg-gray-800 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              type="email"
-              name="email"
-              value={profileData.email}
-              onChange={handleInputChange}
-              placeholder="Email"
-            />
-            <input
-              className="w-full p-2 bg-gray-800 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              type="password"
-              name="currentPassword"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="Current Password"
-            />
-            <input
-              className="w-full p-2 bg-gray-800 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              type="password"
-              name="newPassword"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="New Password"
-            />
-            <input
-              className="w-full p-2 bg-gray-800 rounded text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              type="password"
-              name="confirmPassword"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm New Password"
-            />
-            <div className="flex items-center justify-between">
-              <button
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                type="button"
-                onClick={handlePasswordChange}
-              >
-                Change Password
-              </button>
-              <button
-                className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                type="submit"
-              >
-                Save Changes
-              </button>
-              <button
-                className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                type="button"
-                onClick={handleCancelClick}
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        ) : (
-          <button
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            type="button"
-            onClick={handleEditClick}
-          >
-            Edit Profile
-          </button>
-        )}
-        {errorMessage && <p className="text-red-400 mt-2">{errorMessage}</p>}
-      </div>
+    <div className="flex flex-col items-center justify-center p-4">
+      <h1 className="text-2xl font-bold mb-4">Profile</h1>
+      {isEditMode ? (
+        <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
+          {/* Input fields... */}
+          <input
+            type="text"
+            name="username"
+            value={profileData.username}
+            onChange={handleInputChange}
+            placeholder="Username"
+            className="input-style"
+          />
+          <input
+            type="email"
+            name="email"
+            value={profileData.email}
+            onChange={handleInputChange}
+            placeholder="Email"
+            className="input-style"
+          />
+          <input
+            type="password"
+            name="currentPassword"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            placeholder="Current Password"
+            className="input-style"
+          />
+          {/* Other input fields... */}
+          <div className="flex justify-between space-x-3">
+            <button
+              type="button"
+              onClick={handlePasswordChange}
+              className="flex-1 btn-style bg-blue-500 hover:bg-blue-700"
+            >
+              Change Password
+            </button>
+            <button
+              type="submit"
+              className="flex-1 btn-style bg-green-500 hover:bg-green-700"
+            >
+              Save Changes
+            </button>
+            <button
+              type="button"
+              onClick={handleCancelClick}
+              className="flex-1 btn-style bg-red-500 hover:bg-red-700"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      ) : (
+        <button
+          type="button"
+          onClick={handleEditClick}
+          className="btn-style bg-blue-500 hover:bg-blue-700"
+        >
+          Edit Profile
+        </button>
+      )}
+      {errorMessage && <p className="text-red-500">{errorMessage}</p>}
     </div>
   );
 };

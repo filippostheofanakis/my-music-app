@@ -18,6 +18,7 @@ function App() {
   const [songProgress, setSongProgress] = useState(0);
   const [songs, setSongs] = useState([]);
   const [user, setUser] = useState(null);
+
   const [token, setToken] = useState(localStorage.getItem("token"));
 
   useEffect(() => {
@@ -120,20 +121,27 @@ function App() {
         songs={songs}
       />
       <UrlConverter />
-      {user || token ? (
-        <div>
-          <div>
-            Welcome, {user ? user.displayName || user.email : "Custom User"}
+      <div className="flex flex-col items-center justify-center h-screen bg-gray-100">
+        {user || token ? (
+          <div className="w-full max-w-xs">
+            <div className="mb-4 text-lg font-semibold text-center">
+              Welcome, {user ? user.displayName || user.email : "Custom User"}
+            </div>
+            <button
+              onClick={handleLogout}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            >
+              Sign Out
+            </button>
+            <Profile />
           </div>
-          <button onClick={handleLogout}>Sign Out</button>
-          <Profile />
-        </div>
-      ) : (
-        <>
-          <Login onCustomLogin={handleCustomLogin} />
-          <Register />
-        </>
-      )}
+        ) : (
+          <div className="w-full max-w-xs">
+            <Login onCustomLogin={handleCustomLogin} />
+            <Register />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
